@@ -16,6 +16,9 @@ class Board:
         self.tiles += [WHEAT, SHEEP, WOOD] * 4
         self.tiles += [SAND]
         random.shuffle(self.tiles)
+        self.uniquev = []
+        self.location_materials = {}
+        self.existing_settlements = {}
 
     # draws the board
     def draw(self):
@@ -47,9 +50,10 @@ class Board:
                     angle_rad = math.pi / 180 * angle_deg
                     vert_x = centre[0] + self.tile_size * math.cos(angle_rad)
                     vert_y = centre[1] + self.tile_size * math.sin(angle_rad)
-                    vertices.append([math.floor(vert_x), math.floor(vert_y)])
+                    vertices.append((math.floor(vert_x), math.floor(vert_y)))
+                    v.append((math.floor(vert_x), math.floor(vert_y)))
 
-                v.append(vertices)
+                polygonv.append(vertices)
                 pygame.draw.polygon(self.screen, self.tiles[count], vertices)
                 pygame.draw.polygon(self.screen, BLACK, vertices, 3)
                 pygame.draw.circle(self.screen, BLACK, centre, 4, 4)
@@ -58,20 +62,45 @@ class Board:
             y += self.height * 3/4
             x -= self.width * rows[row]  # resets x back to starting position
 
-        print(v)
+        # creates a list of unique tuples which represent coordinates of each vertex.
+        # i.e. list of the coordinates for possible settlement locations
+        for vertex in v:
+            if vertex not in self.uniquev:
+                if (vertex[0]+1, vertex[1]) not in self.uniquev:
+                    if (vertex[0]-1, vertex[1]) not in self.uniquev:
+                        self.uniquev.append(vertex)
 
+        # creating a dictionary with each unique vertex as keys and empty lists as values
+        for vertex in self.uniquev:
+            self.location_materials[vertex] = []
 
-"""
-        seen = set()
-        duplicates = set()
-        for coordinate_list in v:
-            for coordinate in coordinate_list:
-                tuple_coord = tuple(coordinate)
-                if tuple_coord in seen:
-                    duplicates.add(tuple_coord)
-                else:
-                    seen.add(tuple_coord)
-        print(len(list(duplicates)))
+        # updating the lists for each vertex with the materials in hexagons adjacent to them
+        polynum = 0
+        for polygon in polygonv:
+            for vertex in self.uniquev:
+                if vertex in polygon or (vertex[0] + 1, vertex[1]) in polygon or (vertex[0] - 1, vertex[1]) in polygon:
+                    self.location_materials[vertex].append(self.tiles[polynum])
+            polynum += 1
+
+        print(len(self.uniquev))
+        print(self.uniquev)
+        print(len(self.location_materials))
+        print(self.location_materials)
+
+    # method called when clicking on a location you want to place a settlement
+    def place_settlement(self, location):
+        # Checks whether the location given is close to one of the unique vertices on the board.
+        for option in self.uniquev:
+            if location[0] in range(option[0] - 10, option[0] + 10):
+                if location[1] in range(option[1] - 10, option[1] + 10):
+                    # Check if the vertex is already taken, if not, draw a circle and update the dictionary
+                    if option not in self.existing_settlements:
+                        pygame.draw.circle(self.screen, (200, 123, 112), option, 10)
+                        self.existing_settlements[option] = "player"
+                        print("settlement created")
+                        print(self.existing_settlements)
+                    else:
+                        print("Location not available")
 """
 
 
