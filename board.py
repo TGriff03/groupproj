@@ -20,6 +20,7 @@ class Board:
     # draws the board
     def draw(self):
         v = []
+        polygonv = []
         rows = [3, 4, 5, 4, 3]
         self.screen.fill(BGCOLOUR)
         x = 170
@@ -48,8 +49,9 @@ class Board:
                     vert_x = centre[0] + self.tile_size * math.cos(angle_rad)
                     vert_y = centre[1] + self.tile_size * math.sin(angle_rad)
                     vertices.append([math.floor(vert_x), math.floor(vert_y)])
+                    v.append((math.floor(vert_x), math.floor(vert_y)))
 
-                v.append(vertices)
+                polygonv.append(vertices)
                 pygame.draw.polygon(self.screen, self.tiles[count], vertices)
                 pygame.draw.polygon(self.screen, BLACK, vertices, 3)
                 pygame.draw.circle(self.screen, BLACK, centre, 4, 4)
@@ -58,7 +60,33 @@ class Board:
             y += self.height * 3/4
             x -= self.width * rows[row]  # resets x back to starting position
 
-        print(v)
+        # creates a list of unique tuples which represent coordinates of each vertex.
+        # i.e. list of the coordinates for possible settlement locations.
+        uniquev = []
+        for vertex in v:
+            if vertex not in uniquev:
+                if (vertex[0]+1, vertex[1]) not in uniquev:
+                    if (vertex[0]-1, vertex[1]) not in uniquev:
+                        uniquev.append(vertex)
+
+        # creating a dictionary with each unique vertex as keys and empty lists as values.
+        location_materials = {}
+        for vertex in uniquev:
+            location_materials[vertex] = []
+
+        # updating the lists for each vertex with the materials in hexagons adjacent to them.
+        # materials currently stored as the colour of the hexagon rather than the material name.
+        polynum = 0
+        for polygon in polygonv:
+            for vertex in uniquev:
+                if vertex in polygon or (vertex[0] + 1, vertex[1]) in polygon or (vertex[0] - 1, vertex[1]) in polygon:
+                        location_materials[vertex].append(self.tiles[polynum])
+            polynum += 1
+
+        print(len(uniquev))
+        print(uniquev)
+        print(len(location_materials))
+        print(location_materials)
 
 
 """
