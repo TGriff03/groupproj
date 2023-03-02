@@ -64,6 +64,8 @@ class Main:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 self.count += 1
                 print('clicked ', self.count)
+                location = pygame.mouse.get_pos()
+                self.board.place_settlement(location)
 
     # quits game
     def quit(self):
